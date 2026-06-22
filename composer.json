@@ -1,0 +1,14 @@
+{
+    "name": "tecda/proyecto2",
+    "description": "Analizador Estadístico de Excel - Proyecto 2",
+    "type": "project",
+    "require": {
+        "phpoffice/phpspreadsheet": "^1.29",
+        "amenadiel/jpgraph": "^4.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}
