@@ -419,45 +419,49 @@ class CalculadoraEstadistica
     }
 
     /**
-     * Calcula los cuartiles Q1 y Q3 para datos no agrupados usando el método del localizador (Triola).
+     * Calcula la mediana de un conjunto de datos plano.
+     */
+    private function calcularMedianaArray(array $valores): float
+    {
+        $cant = count($valores);
+        if ($cant === 0) {
+            return 0.0;
+        }
+        if ($cant % 2 !== 0) {
+            $pos = ($cant - 1) / 2;
+            return $valores[$pos];
+        } else {
+            $pos1 = ($cant / 2) - 1;
+            $pos2 = $cant / 2;
+            return ($valores[$pos1] + $valores[$pos2]) / 2.0;
+        }
+    }
+
+    /**
+     * Calcula los cuartiles Q1 y Q3 para datos no agrupados usando el método de las mitades (Prof. Meana).
+     * Q1 es la mediana de la mitad inferior de los datos, y Q3 es la mediana de la mitad superior
+     * (excluyendo la mediana si n es impar).
      */
     public function cuartiles(): array
     {
         $n = $this->cantidad;
-        // Q1 (k = 25)
-        $L1 = 0.25 * $n;
-        if ($L1 == floor($L1)) {
-            $idx1 = (int)$L1 - 1;
-            $idx2 = (int)$L1;
-            $q1 = ($this->datosOrdenados[$idx1] + $this->datosOrdenados[$idx2]) / 2.0;
-            $q1_pos = "promedio de las posiciones " . ((int)$L1) . " y " . ((int)$L1 + 1);
-            $q1_valores = [$this->datosOrdenados[$idx1], $this->datosOrdenados[$idx2]];
-            $q1_is_entero = true;
+        
+        if ($n % 2 === 0) {
+            // Caso N par: se divide la serie ordenada a la mitad exacta
+            $mitadInferior = array_slice($this->datosOrdenados, 0, $n / 2);
+            $mitadSuperior = array_slice($this->datosOrdenados, $n / 2);
+            $q1_pos = "mediana de la mitad inferior (primeros " . ($n / 2) . " datos)";
+            $q3_pos = "mediana de la mitad superior (últimos " . ($n / 2) . " datos)";
         } else {
-            $pos = (int)ceil($L1);
-            $q1 = $this->datosOrdenados[$pos - 1];
-            $q1_pos = "posición " . $pos;
-            $q1_valores = [$q1];
-            $q1_is_entero = false;
+            // Caso N impar: se excluye el dato central de la mediana
+            $mitadInferior = array_slice($this->datosOrdenados, 0, ($n - 1) / 2);
+            $mitadSuperior = array_slice($this->datosOrdenados, ($n + 1) / 2);
+            $q1_pos = "mediana de la mitad inferior (primeros " . (($n - 1) / 2) . " datos, excluyendo el elemento central)";
+            $q3_pos = "mediana de la mitad superior (últimos " . (($n - 1) / 2) . " datos, excluyendo el elemento central)";
         }
 
-        // Q3 (k = 75)
-        $L3 = 0.75 * $n;
-        if ($L3 == floor($L3)) {
-            $idx1 = (int)$L3 - 1;
-            $idx2 = (int)$L3;
-            $q3 = ($this->datosOrdenados[$idx1] + $this->datosOrdenados[$idx2]) / 2.0;
-            $q3_pos = "promedio de las posiciones " . ((int)$L3) . " y " . ((int)$L3 + 1);
-            $q3_valores = [$this->datosOrdenados[$idx1], $this->datosOrdenados[$idx2]];
-            $q3_is_entero = true;
-        } else {
-            $pos = (int)ceil($L3);
-            $q3 = $this->datosOrdenados[$pos - 1];
-            $q3_pos = "posición " . $pos;
-            $q3_valores = [$q3];
-            $q3_is_entero = false;
-        }
-
+        $q1 = $this->calcularMedianaArray($mitadInferior);
+        $q3 = $this->calcularMedianaArray($mitadSuperior);
         $ric = $q3 - $q1;
 
         return [
@@ -467,16 +471,14 @@ class CalculadoraEstadistica
             'ordenados' => $this->datosOrdenados,
             'cantidad' => $n,
             'q1_details' => [
-                'l' => $L1,
                 'pos' => $q1_pos,
-                'valores' => $q1_valores,
-                'is_entero' => $q1_is_entero
+                'valores' => $mitadInferior,
+                'resultado' => $q1
             ],
             'q3_details' => [
-                'l' => $L3,
                 'pos' => $q3_pos,
-                'valores' => $q3_valores,
-                'is_entero' => $q3_is_entero
+                'valores' => $mitadSuperior,
+                'resultado' => $q3
             ]
         ];
     }

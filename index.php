@@ -688,25 +688,30 @@ ini_set('display_errors', 0);
             const q3 = qDet.q3;
             const ric = qDet.ric;
 
+            // Listar valores de cada mitad de forma limpia
+            const infValores = qDet.q1_details.valores.map(v => formatNumber(v)).join(', ');
+            const supValores = qDet.q3_details.valores.map(v => formatNumber(v)).join(', ');
+
             let html = `
                 <h3>Explicación del cálculo de Cuartiles (No Agrupados)</h3>
-                <p>Utilizamos el método del localizador para encontrar la posición del cuartil $Q_k$:</p>
-                $$L = \\frac{k}{100} \\cdot n$$
+                <p>Siguiendo el apunte de cátedra del Prof. Meana, los cuartiles se obtienen dividiendo el conjunto de datos ordenados en dos mitades (inferior y superior) y calculando la mediana de cada una:</p>
+                <ul>
+                    <li>Si el número de datos $n$ es <strong>par</strong>, la muestra se divide en dos partes iguales de tamaño $n/2$.</li>
+                    <li>Si el número de datos $n$ es <strong>impar</strong>, excluimos el dato central (mediana) y dividimos los datos restantes en dos mitades de tamaño $(n-1)/2$.</li>
+                </ul>
                 <ol>
-                    <li><strong>Primer Cuartil ($Q_1$ - Percentil 25)</strong>:
+                    <li><strong>Primer Cuartil ($Q_1$)</strong>:
                         <ul>
-                            <li>Localizador: $L = \\frac{25}{100} \\cdot ${n} = ${qDet.q1_details.l}$</li>
-                            <li>${qDet.q1_details.is_entero ? `Como $L$ es entero, promediamos las posiciones ${qDet.q1_details.l} y ${qDet.q1_details.l + 1}:` : `Como $L$ no es entero, redondeamos hacia arriba y tomamos el valor en la posición ${Math.ceil(qDet.q1_details.l)} de los datos ordenados:`}
-                                <strong>$Q_1 = ${formatNumber(q1)}$</strong>
-                            </li>
+                            <li>Es la mediana de la mitad inferior de los datos ordenados.</li>
+                            <li>Mitad inferior (${qDet.q1_details.valores.length} datos): <code>[${infValores}]</code></li>
+                            <li><strong>$Q_1 = ${formatNumber(q1)}$</strong> (${qDet.q1_details.pos})</li>
                         </ul>
                     </li>
-                    <li><strong>Tercer Cuartil ($Q_3$ - Percentil 75)</strong>:
+                    <li><strong>Tercer Cuartil ($Q_3$)</strong>:
                         <ul>
-                            <li>Localizador: $L = \\frac{75}{100} \\cdot ${n} = ${qDet.q3_details.l}$</li>
-                            <li>${qDet.q3_details.is_entero ? `Como $L$ es entero, promediamos las posiciones ${qDet.q3_details.l} y ${qDet.q3_details.l + 1}:` : `Como $L$ no es entero, redondeamos hacia arriba y tomamos el valor en la posición ${Math.ceil(qDet.q3_details.l)} de los datos ordenados:`}
-                                <strong>$Q_3 = ${formatNumber(q3)}$</strong>
-                            </li>
+                            <li>Es la mediana de la mitad superior de los datos ordenados.</li>
+                            <li>Mitad superior (${qDet.q3_details.valores.length} datos): <code>[${supValores}]</code></li>
+                            <li><strong>$Q_3 = ${formatNumber(q3)}$</strong> (${qDet.q3_details.pos})</li>
                         </ul>
                     </li>
                     <li><strong>Rango Intercuartil ($RIC$)</strong>:
