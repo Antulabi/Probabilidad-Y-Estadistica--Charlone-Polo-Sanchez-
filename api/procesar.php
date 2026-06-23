@@ -60,16 +60,40 @@ try {
     $cv = $calculadora->coeficienteVariacion();
     $cuartilesInfo = $calculadora->cuartiles();
 
-    // Calcular tendencia central agrupada
-    $k = $calculadora->calcularIntervalosSturges();
-    $tablaAgrupada = $calculadora->tablaFrecuenciasAgrupada($k);
+    // Obtener parámetros opcionales forzados
+    $kForzado = isset($_POST['k_intervalos']) && is_numeric($_POST['k_intervalos']) ? (int)$_POST['k_intervalos'] : null;
+    $amplitudForzada = isset($_POST['amplitud_clase']) && is_numeric($_POST['amplitud_clase']) ? (float)$_POST['amplitud_clase'] : null;
+
+    if ($kForzado !== null && $kForzado < 1) {
+        $kForzado = null;
+    }
+    if ($amplitudForzada !== null && $amplitudForzada <= 0) {
+        $amplitudForzada = null;
+    }
+
+    $min = $calculadora->obtenerDatosOrdenados()[0];
+    $max = $calculadora->obtenerDatosOrdenados()[count($datosSerie) - 1];
+    $rango = $max - $min;
+
+    $k = $kForzado ?? $calculadora->calcularIntervalosSturges();
+
+    if ($amplitudForzada !== null && $kForzado === null) {
+        $k = (int) ceil($rango / $amplitudForzada);
+        if ($k < 1) $k = 1;
+        // Si el máximo coincide con el límite superior de k clases, asegurar cobertura
+        if ($min + $k * $amplitudForzada < $max) {
+            $k++;
+        }
+    }
+
+    $tablaAgrupada = $calculadora->tablaFrecuenciasAgrupada($k, $amplitudForzada);
     $mediaAgrupada = $calculadora->mediaAgrupada($tablaAgrupada);
-    $medianaAgrupadaInfo = $calculadora->medianaAgrupada($tablaAgrupada, $k);
+    $medianaAgrupadaInfo = $calculadora->medianaAgrupada($tablaAgrupada, $k, $amplitudForzada);
     $intervaloModalInfo = $calculadora->intervaloModal($tablaAgrupada);
     $varianzaAgrupadaInfo = $calculadora->varianzaAgrupada($tablaAgrupada);
     $desviacionAgrupada = $calculadora->desviacionEstandarAgrupada($tablaAgrupada);
     $cvAgrupada = $calculadora->coeficienteVariacionAgrupada($tablaAgrupada);
-    $cuartilesAgrupadosInfo = $calculadora->cuartilesAgrupados($tablaAgrupada, $k);
+    $cuartilesAgrupadosInfo = $calculadora->cuartilesAgrupados($tablaAgrupada, $k, $amplitudForzada);
 
     // Estructurar respuesta JSON
     echo json_encode([

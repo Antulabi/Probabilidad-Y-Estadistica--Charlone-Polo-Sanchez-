@@ -59,12 +59,20 @@ ini_set('display_errors', 0);
                 <div id="dataset-info" style="margin-bottom: 20px; color: var(--text-secondary);">
                     <!-- Nombre del archivo y detalles de carga -->
                 </div>
-                <div class="selectors-grid" style="grid-template-columns: 1fr;">
+                <div class="selectors-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                     <div class="form-group">
                         <label for="select-pestana"><i class="fa-solid fa-table"></i> Pestaña (Hoja):</label>
                         <select id="select-pestana">
                             <!-- Opciones cargadas dinámicamente -->
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-k"><i class="fa-solid fa-list-ol"></i> Cant. Intervalos ($k$):</label>
+                        <input type="number" id="input-k" min="1" placeholder="Ej: 7" style="background-color: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 10px; border-radius: var(--radius-md); font-size: 1rem;">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-a"><i class="fa-solid fa-arrows-left-right"></i> Amplitud ($a$):</label>
+                        <input type="number" id="input-a" min="0.0001" step="any" placeholder="Ej: 10" style="background-color: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 10px; border-radius: var(--radius-md); font-size: 1rem;">
                     </div>
                 </div>
             </div>
@@ -277,7 +285,7 @@ ini_set('display_errors', 0);
                             <thead>
                                 <tr>
                                     <th>Intervalo Clase</th>
-                                    <th>Límite Real</th>
+                                    <th>Amplitud ($a$)</th>
                                     <th>Marca Clase ($x_{ic}$)</th>
                                     <th>Frec. Absoluta ($f_i$)</th>
                                     <th>Frec. Relativa ($f_r$)</th>
@@ -359,12 +367,24 @@ ini_set('display_errors', 0);
             }
         });
 
+        document.getElementById('input-k').addEventListener('change', () => {
+            subirArchivo(true);
+        });
+
+        document.getElementById('input-a').addEventListener('change', () => {
+            subirArchivo(true);
+        });
+
         // Envío AJAX del formulario
         function subirArchivo(cambioConfig = false) {
             errorMessage.classList.add('hidden');
             if (!cambioConfig) {
                 resultsSection.classList.add('hidden');
                 loader.classList.remove('hidden');
+                
+                // Limpiar inputs forzados al cargar un nuevo archivo
+                document.getElementById('input-k').value = '';
+                document.getElementById('input-a').value = '';
             }
 
             const formData = new FormData(uploadForm);
@@ -373,6 +393,16 @@ ini_set('display_errors', 0);
             if (cambioConfig) {
                 const pestana = document.getElementById('select-pestana').value;
                 formData.append('pestana', pestana);
+                
+                const inputK = document.getElementById('input-k').value;
+                if (inputK && inputK > 0) {
+                    formData.append('k_intervalos', inputK);
+                }
+                
+                const inputA = document.getElementById('input-a').value;
+                if (inputA && inputA > 0) {
+                    formData.append('amplitud_clase', inputA);
+                }
             }
 
             fetch('api/procesar.php', {
@@ -411,6 +441,10 @@ ini_set('display_errors', 0);
                 <i class="fa-solid fa-file-invoice"></i> Archivo: <strong>${excelData.nombre_archivo}</strong> | 
                 Cantidad de datos numéricos analizados: <strong>${excelData.no_agrupados.cantidad}</strong>
             `;
+
+            // Actualizar inputs de configuración con los valores calculados
+            document.getElementById('input-k').value = excelData.agrupados.k;
+            document.getElementById('input-a').value = excelData.agrupados.amplitud;
 
             // Llenar selectores
             actualizarSelectores();
@@ -460,7 +494,7 @@ ini_set('display_errors', 0);
   
             const intModal = excelData.agrupados.intervalo_modal.intervalos;
             if (intModal.length > 0) {
-                const modalesTxt = intModal.map(i => `[${formatNumber(i.lim_inf)} - ${formatNumber(i.lim_sup)}]`).join('<br>');
+                const modalesTxt = intModal.map(i => `[${formatNumber(i.lim_inf)} - ${formatNumber(i.lim_sup)})`).join('<br>');
                 document.getElementById('grouped-modal').innerHTML = modalesTxt;
             } else {
                 document.getElementById('grouped-modal').textContent = '-';
@@ -497,15 +531,12 @@ ini_set('display_errors', 0);
                 const limInfTxt = Number.isInteger(fila.lim_inf) ? fila.lim_inf.toString() : fila.lim_inf.toFixed(2);
                 const limSupTxt = Number.isInteger(fila.lim_sup) ? fila.lim_sup.toString() : fila.lim_sup.toFixed(2);
                 
-                // Los reales suelen ser .5, por lo que se formatea con decimales si no son enteros
-                const limRealInfTxt = Number.isInteger(fila.lim_real_inf) ? fila.lim_real_inf.toString() : fila.lim_real_inf.toFixed(2);
-                const limRealSupTxt = Number.isInteger(fila.lim_real_sup) ? fila.lim_real_sup.toString() : fila.lim_real_sup.toFixed(2);
-                
                 const xIcTxt = Number.isInteger(fila.x_ic) ? fila.x_ic.toString() : fila.x_ic.toFixed(2);
+                const amplitudTxt = Number.isInteger(fila.amplitud) ? fila.amplitud.toString() : fila.amplitud.toFixed(2);
                 
                 tr.innerHTML = `
-                    <td><strong>[${limInfTxt} - ${limSupTxt}]</strong></td>
-                    <td>[${limRealInfTxt} - ${limRealSupTxt}]</td>
+                    <td><strong>[${limInfTxt} - ${limSupTxt})</strong></td>
+                    <td>${amplitudTxt}</td>
                     <td>${xIcTxt}</td>
                     <td>${fila.f_i}</td>
                     <td>${fila.f_r.toFixed(4)}</td>
@@ -1017,8 +1048,8 @@ ini_set('display_errors', 0);
 
             const ctxSi = document.getElementById('chart-agrupados').getContext('2d');
             const tablaSi = excelData.agrupados.tabla;
-            // Intervalo Clase como label (ej: "[40 - 50]")
-            const labelsSi = tablaSi.map(f => `[${formatNumber(f.lim_inf)} - ${formatNumber(f.lim_sup)}]`);
+            // Intervalo Clase como label (ej: "[40 - 50)")
+            const labelsSi = tablaSi.map(f => `[${formatNumber(f.lim_inf)} - ${formatNumber(f.lim_sup)})`);
             const dataSi = tablaSi.map(f => f.f_i);
 
             // Resaltar la frecuencia máxima (clase modal) en verde

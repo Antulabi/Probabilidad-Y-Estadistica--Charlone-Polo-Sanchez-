@@ -178,7 +178,7 @@ class CalculadoraEstadistica
             if ($a < 1) $a = 1;
             
             // Ajustar k dinámicamente si es necesario para cubrir el máximo
-            while ($this->min + $k * $a - 1 < $this->max) {
+            while ($this->min + $k * $a < $this->max) {
                 $k++;
             }
         } else {
@@ -190,39 +190,27 @@ class CalculadoraEstadistica
         $n = $this->cantidad;
 
         for ($i = 0; $i < $k; $i++) {
-            if ($this->soloEnteros) {
-                $limiteNominalInferior = $this->min + ($i * $a);
-                $limiteNominalSuperior = $limiteNominalInferior + $a - 1;
+            $limiteNominalInferior = $this->min + ($i * $a);
+            $limiteNominalSuperior = $this->min + (($i + 1) * $a);
 
-                $limiteRealInferior = $limiteNominalInferior - 0.5;
-                $limiteRealSuperior = $limiteNominalSuperior + 0.5;
-            } else {
-                $limiteNominalInferior = $this->min + ($i * $a);
-                $limiteNominalSuperior = $this->min + (($i + 1) * $a);
-
-                $limiteRealInferior = $limiteNominalInferior;
-                $limiteRealSuperior = $limiteNominalSuperior;
-            }
+            // En el esquema continuo/abierto, los límites reales coinciden con los nominales
+            $limiteRealInferior = $limiteNominalInferior;
+            $limiteRealSuperior = $limiteNominalSuperior;
 
             // Marca de clase (x_ic): Punto medio del intervalo
             $x_ic = ($limiteNominalInferior + $limiteNominalSuperior) / 2;
 
-            // Contar frecuencia absoluta (f_i) en el intervalo
+            // Contar frecuencia absoluta (f_i) en el intervalo [L_inf, L_sup)
+            // Para el último intervalo, se incluye el límite superior [L_inf, L_sup]
             $f_i = 0;
             foreach ($this->datosOrdenados as $dato) {
-                if ($this->soloEnteros) {
+                if ($i === $k - 1) {
                     if ($dato >= $limiteNominalInferior && $dato <= $limiteNominalSuperior) {
                         $f_i++;
                     }
                 } else {
-                    if ($i === $k - 1) {
-                        if ($dato >= $limiteNominalInferior && $dato <= $limiteNominalSuperior) {
-                            $f_i++;
-                        }
-                    } else {
-                        if ($dato >= $limiteNominalInferior && $dato < $limiteNominalSuperior) {
-                            $f_i++;
-                        }
+                    if ($dato >= $limiteNominalInferior && $dato < $limiteNominalSuperior) {
+                        $f_i++;
                     }
                 }
             }
@@ -242,7 +230,8 @@ class CalculadoraEstadistica
                 'f_r'       => $f_r,
                 'F_i'       => $acumuladaAbsoluta,
                 'F_r'       => $F_r,
-                'porcentaje'=> $f_r * 100
+                'porcentaje'=> $f_r * 100,
+                'amplitud'  => $a
             ];
         }
 
@@ -273,8 +262,6 @@ class CalculadoraEstadistica
         
         if ($amplitudForzada !== null) {
             $a = $amplitudForzada;
-        } elseif ($this->soloEnteros) {
-            $a = $tabla[0]['lim_sup'] - $tabla[0]['lim_inf'] + 1;
         } else {
             $a = $tabla[0]['lim_sup'] - $tabla[0]['lim_inf'];
         }
@@ -562,8 +549,6 @@ class CalculadoraEstadistica
 
         if ($amplitudForzada !== null) {
             $a = $amplitudForzada;
-        } elseif ($this->soloEnteros) {
-            $a = $tabla[0]['lim_sup'] - $tabla[0]['lim_inf'] + 1;
         } else {
             $a = $tabla[0]['lim_sup'] - $tabla[0]['lim_inf'];
         }
