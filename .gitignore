@@ -1,2 +1,17 @@
+# Dependencias y temporales del proyecto
 vendor/
 scratch/
+composer.phar
+
+# Configuraciones de editores de código (IDE)
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
