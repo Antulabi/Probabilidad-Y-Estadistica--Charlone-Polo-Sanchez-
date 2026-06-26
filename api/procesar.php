@@ -71,7 +71,9 @@ try {
     $cv = $calculadora->coeficienteVariacion();
     $cuartilesInfo = $calculadora->cuartiles();
     
-    // Obtiene los parámetros opcionales forzados
+    // Si son enviados desde el front, se usan, sino se calculan automáticamente por Sturges
+    // si $kForzado es null, se calcula automáticamente por Sturges
+    // si $amplitudForzada es null, se calcula automáticamente por Sturges
     $kForzado = isset($_POST['k_intervalos']) && is_numeric($_POST['k_intervalos']) ? (int)$_POST['k_intervalos'] : null;
     $amplitudForzada = isset($_POST['amplitud_clase']) && is_numeric($_POST['amplitud_clase']) ? (float)$_POST['amplitud_clase'] : null;
 

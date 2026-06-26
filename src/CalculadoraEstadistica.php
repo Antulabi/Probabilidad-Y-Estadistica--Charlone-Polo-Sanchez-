@@ -108,6 +108,7 @@ class CalculadoraEstadistica
      * - Impar: Me = X_{(n+1)/2}
      * - Par: Me = (X_{n/2} + X_{n/2 + 1}) / 2
      */
+    // Madiana: valor central del conjunto de datos ordenados. En caso de ser par, se calcula el promedio de los dos valores centrales
     public function mediana(): float
     {
         if ($this->cantidad % 2 !== 0) {
@@ -123,6 +124,7 @@ class CalculadoraEstadistica
     }
 
     /**
+     * // Moda: valor que más se repite en el conjunto de datos
      * Calcula la moda para datos no agrupados.
      * Retorna un array con el valor o valores modales (M0).
      */
@@ -144,7 +146,7 @@ class CalculadoraEstadistica
                 $modas[] = floatval($valor);
             }
         }
-        // Ordena los modas de menor a mayor
+        // Ordena las modas de menor a mayor
         sort($modas);
         return $modas;
     }
