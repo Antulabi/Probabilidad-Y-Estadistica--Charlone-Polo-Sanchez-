@@ -33,6 +33,7 @@ class LectorExcel
     public function cargar(): void
     {
         // Crea un lector de archivos Excel
+        // IOFactory::createReaderForFile() crea un lector de archivos Excel que identifica automaticamente el formato del archivo a leer 
         $lector = IOFactory::createReaderForFile($this->rutaArchivo);
         // Lee solo valores, ignorando formatos
         $lector->setReadDataOnly(true);

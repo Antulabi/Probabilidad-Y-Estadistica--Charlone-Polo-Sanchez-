@@ -43,8 +43,11 @@ try {
     $datosSerie = [];
     // Recorre todas las filas de la matriz
     foreach ($datosMatriz as $fila) {
+        // Recorre todas las columnas de la matriz
         foreach ($fila as $val) {
+            // Si el valor no es nulo y es numérico, se agrega a la serie
             if ($val !== null && is_numeric($val)) {
+                // Convierte el valor a número flotante
                 $datosSerie[] = floatval($val);
             }
         }
@@ -114,7 +117,7 @@ try {
     // Calcula los cuartiles agrupados
     $cuartilesAgrupadosInfo = $calculadora->cuartilesAgrupados($tablaAgrupada, $k, $amplitudForzada);
 
-    // Estructura la respuesta JSON
+    // Toda la informacion estructurada en un gran array asociativo en PHP mediante json_encode() retorna el array a formato JSON 
     echo json_encode([
         'exito' => true,
         'nombre_archivo' => $nombreArchivo,
